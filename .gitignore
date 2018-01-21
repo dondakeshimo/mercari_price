@@ -3,5 +3,4 @@
 __pycache__
 
 data/*
-src/draft.py
 src/sample.py

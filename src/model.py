@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 
 
 PAD_MAXLEN = 100
-MAX_FEATURES = 100000
+MAX_FEAT = 10000
 EMBED_DIM = 128
 GRU_OUT = 1
 EPOCHS = 30
@@ -65,11 +65,16 @@ class Predict_price():
             self.model.load_weights(pre_trained_model_path + ".h5")
             print(self.model.summary())
         else:
-            self.model_item_des = Input(shape=[1], name="item_des")
-            self.model_brand = Input(shape=[1], name="brand")
-            self.model_category = Input(shape=[PAD_MAXLEN], name="category")
-            self.model_item_con = Input(shape=[1], name="item_con")
-            self.model_shipping = Input(shape=[1], name="shipping")
+            self.input_item_des = Input(shape=[1], name="item_des")
+            self.input_brand = Input(shape=[1], name="brand")
+            self.input_category = Input(shape=[PAD_MAXLEN], name="category")
+            self.input_item_con = Input(shape=[1], name="item_con")
+            self.input_shipping = Input(shape=[1], name="shipping")
+
+            self.emb_tem_des = Embedding(2, 5)(self.input_name)
+            self.emb_brand = Embedding(MAX_FEAT, 30)(self.input_brand)
+            self.emb_category = Embedding(MAX_FEAT, 30)(self.input_category)
+            self.emb_item_con = Embedding(2, 5)(self.input_item_con)
             print(self.model.summary())
 
     def separate_data(self):
