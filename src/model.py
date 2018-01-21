@@ -5,13 +5,13 @@ import pandas as pd
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential, model_from_json
-from keras.layers import Embedding, GRU, Dropout, Flatten
+from keras.layers import Input, Embedding, GRU, Dropout, Flatten
 # from keras.utils import plot_model
 # from keras import backend as K
 from sklearn.model_selection import train_test_split
 
 
-PAD_MAXLEN = 610
+PAD_MAXLEN = 100
 MAX_FEATURES = 100000
 EMBED_DIM = 128
 GRU_OUT = 1
@@ -42,13 +42,15 @@ class Predict_price():
         tokenizer.fit_on_texts(category.values)
         token_category = tokenizer.texts_to_sequences(category.values)
         self.category_dict = {v: k for k, v in tokenizer.word_index.items()}
-        token_category = pad_sequences(token_category, maxlen=100)
+        # dictionary length is 1144
+        token_category = pad_sequences(token_category, maxlen=PAD_MAXLEN)
 
         brand = self.data.brand_name
         tokenizer = Tokenizer(split="/")
         tokenizer.fit_on_texts(brand.values)
         token_brand = tokenizer.texts_to_sequences(brand.values)
         self.brand_dict = {v: k for k, v in tokenizer.word_index.items()}
+        # dictionary length is 4979
 
         return token_category, token_brand
 
@@ -63,21 +65,11 @@ class Predict_price():
             self.model.load_weights(pre_trained_model_path + ".h5")
             print(self.model.summary())
         else:
-            self.model = Sequential()
-            self.model.add(Embedding(MAX_FEATURES,
-                                     EMBED_DIM,
-                                     input_length=self.X.shape[1]))
-            self.model.add(Dropout(rate=0.2))
-            self.model.add(GRU(units=GRU_OUT,
-                               return_sequences=True,
-                               activation="sigmoid",
-                               dropout=0.2,
-                               recurrent_dropout=0.2))
-            # self.model.add(Dense(1, activation="sigmoid"))
-            self.model.add(Flatten())
-            self.model.compile(loss="mean_squared_error",
-                               optimizer="adam",
-                               metrics=["accuracy"])
+            self.model_item_des = Input(shape=[1], name="item_des")
+            self.model_brand = Input(shape=[1], name="brand")
+            self.model_category = Input(shape=[PAD_MAXLEN], name="category")
+            self.model_item_con = Input(shape=[1], name="item_con")
+            self.model_shipping = Input(shape=[1], name="shipping")
             print(self.model.summary())
 
     def separate_data(self):
