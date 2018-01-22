@@ -100,6 +100,8 @@ class Predict_price():
                                       input_category, input_item_con,
                                       input_shipping],
                                output=[output])
+            self.model.compile(optimizer="rmsprop",
+                               loss="mean_squared_error")
             print(self.model.summary())
 
     def separate_data(self):
