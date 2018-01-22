@@ -49,9 +49,10 @@ class Predict_price():
         token_category = pad_sequences(token_category, maxlen=PAD_MAXLEN)
 
         brand = self.data.brand_name
-        tokenizer = Tokenizer(split="/")
+        tokenizer = Tokenizer(split="\n", filters="\n")
         tokenizer.fit_on_texts(brand.values)
         token_brand = tokenizer.texts_to_sequences(brand.values)
+        token_brand = np.array(list(chain.from_iterable(token_brand)))
         self.brand_dict = {v: k for k, v in tokenizer.word_index.items()}
 
         return token_category, token_brand
