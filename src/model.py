@@ -1,6 +1,8 @@
 import sys
 import time
 import argparse
+from itertools import chain
+import numpy as np
 import pandas as pd
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
@@ -18,6 +20,8 @@ GRU_OUT = 1
 EPOCHS = 30
 BATCH_SIZE = 32
 TEST_SIZE = 0.33
+# dictionary length is 1144
+# dictionary length is 4979
 
 
 class Predict_price():
@@ -42,7 +46,6 @@ class Predict_price():
         tokenizer.fit_on_texts(category.values)
         token_category = tokenizer.texts_to_sequences(category.values)
         self.category_dict = {v: k for k, v in tokenizer.word_index.items()}
-        # dictionary length is 1144
         token_category = pad_sequences(token_category, maxlen=PAD_MAXLEN)
 
         brand = self.data.brand_name
@@ -50,7 +53,6 @@ class Predict_price():
         tokenizer.fit_on_texts(brand.values)
         token_brand = tokenizer.texts_to_sequences(brand.values)
         self.brand_dict = {v: k for k, v in tokenizer.word_index.items()}
-        # dictionary length is 4979
 
         return token_category, token_brand
 
