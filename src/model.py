@@ -127,38 +127,10 @@ class Predict_price():
         print("Prediction")
         return self.model.predict(target, verbose=1)
 
-    def predict_significant_terms(self, target):
-        prediction = self.predict(target)
-        significant_terms = []
-
-        for i in range(len(self.X)):
-            tmp = self.X[i][prediction[i] >= 0.5]
-            significant_terms.append([])
-            for t in tmp:
-                significant_terms[i].append(self.word_dict[t])
-            significant_terms[i] = list(set(significant_terms[i]))
-            significant_terms[i].sort()
-
-        return significant_terms
-
     def save_model(self, checkpoint_path):
         self.model.save_weights(checkpoint_path + ".h5")
         with open(checkpoint_path + ".json", 'w') as f:
             f.write(self.model.to_json())
-
-    def count_accuracy(self, target, prediction):
-        total_target = 0
-        predicted_target = 0
-        not_significant_terms = 0
-        for i in target.index:
-            set_target = set(target[i])
-            set_pred = set(prediction[i])
-            total_target += len(set_target)
-            predicted_target += len(set_target & set_pred)
-            not_significant_terms += len(set_pred - set_target)
-        print("count_accuracy: {}".format(predicted_target / total_target))
-        print("mistake_count: {}".format(not_significant_terms))
-        return total_target, predicted_target, not_significant_terms
 
 
 def argparser():
