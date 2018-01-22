@@ -6,15 +6,16 @@ import numpy as np
 import pandas as pd
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
-from keras.models import Sequential, model_from_json
-from keras.layers import Input, Embedding, GRU, Dropout, Flatten
+from keras.models import model_from_json, Model
+from keras.layers import Input, Embedding, Dropout, Flatten, Dense
+from keras.layers import GRU, concatenate
 # from keras.utils import plot_model
 # from keras import backend as K
 from sklearn.model_selection import train_test_split
 
 
 PAD_MAXLEN = 100
-MAX_FEAT = 10000
+TOKEN_FEAT = 10000
 EMBED_DIM = 128
 GRU_OUT = 1
 EPOCHS = 30
@@ -68,16 +69,37 @@ class Predict_price():
             self.model.load_weights(pre_trained_model_path + ".h5")
             print(self.model.summary())
         else:
-            self.input_item_des = Input(shape=[1], name="item_des")
-            self.input_brand = Input(shape=[1], name="brand")
-            self.input_category = Input(shape=[PAD_MAXLEN], name="category")
-            self.input_item_con = Input(shape=[1], name="item_con")
-            self.input_shipping = Input(shape=[1], name="shipping")
+            input_item_des = Input(shape=[1], name="item_des")
+            input_brand = Input(shape=[1], name="brand")
+            input_category = Input(shape=[PAD_MAXLEN], name="category")
+            input_item_con = Input(shape=[1], name="item_con")
+            input_shipping = Input(shape=[1], name="shipping")
 
-            self.emb_tem_des = Embedding(2, 5)(self.input_name)
-            self.emb_brand = Embedding(MAX_FEAT, 30)(self.input_brand)
-            self.emb_category = Embedding(MAX_FEAT, 30)(self.input_category)
-            self.emb_item_con = Embedding(2, 5)(self.input_item_con)
+            emb_item_des = Embedding(2, 5)(input_item_des)
+            emb_brand = Embedding(TOKEN_FEAT, 30)(input_brand)
+            emb_category = Embedding(TOKEN_FEAT, 30)(input_category)
+            emb_item_con = Embedding(2, 5)(input_item_con)
+            emb_shipping = Embedding(2, 5)(input_shipping)
+
+            rnn_layer = GRU(8)(emb_category)
+
+            main_layer = concatenate([Flatten()(emb_item_des),
+                                      Flatten()(emb_brand),
+                                      Flatten()(emb_item_con),
+                                      Flatten()(emb_shipping),
+                                      rnn_layer])
+
+            temp_dense = Dense(512, activation="relu")(main_layer)
+            main_layer = Dropout(0.3)(temp_dense)
+            temp_dense = Dense(96, activation="relu")(main_layer)
+            main_layer = Dropout(0.2)(temp_dense)
+
+            output = Dense(1, activation="linear")(main_layer)
+
+            self.model = Model(input=[input_item_des, input_brand,
+                                      input_category, input_item_con,
+                                      input_shipping],
+                               output=[output])
             print(self.model.summary())
 
     def separate_data(self):
