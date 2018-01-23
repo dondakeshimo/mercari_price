@@ -57,9 +57,34 @@ class Predict_price():
         self.brand = token_brand
         self.brand_dict = {v: k for k, v in tokenizer.word_index.items()}
 
-    def adjust_data(self):
+    def extraction_extra_data(self):
         self.item_con = self.data.item_condition_id.values
         self.shipping = self.data.shipping.values
+        self.price = self.data.price.values
+
+    def make_separate_data(self):
+        sep_data = train_test_split(self.item_des, self.brand,
+                                    self.category, self.item_con,
+                                    self.shipping, self.price, test_size=0.33)
+        print("training data number: {}".format(sep_data[0].shape[0]))
+        print("validation data number: {}".format(sep_data[0].shape[0]))
+
+        self.X_train = {
+            "item_des": sep_data[0],
+            "brand": sep_data[2],
+            "category": sep_data[4],
+            "item_con": sep_data[6],
+            "shipping": sep_data[8],
+        }
+        self.Y_train = sep_data[10]
+        self.X_test = {
+            "item_des": sep_data[1],
+            "brand": sep_data[3],
+            "category": sep_data[5],
+            "item_con": sep_data[7],
+            "shipping": sep_data[9],
+        }
+        self.Y_test = sep_data[11]
 
     def make_model(self, pre_trained_model_path=None):
         if pre_trained_model_path:
@@ -107,12 +132,6 @@ class Predict_price():
             self.model.compile(optimizer="rmsprop",
                                loss="mean_squared_error")
             print(self.model.summary())
-
-    def separate_data(self):
-        sep_data = train_test_split(self.X, self.Y, test_size=0.33)
-        self.X_train, self.X_test, self.Y_train, self.Y_test = sep_data
-        print("training data number: {}".format(self.X_train.shape[0]))
-        print("validation data number: {}".format(self.X_test.shape[0]))
 
     def train(self):
         self.model.fit(self.X_train,

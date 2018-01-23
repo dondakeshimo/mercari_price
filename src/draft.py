@@ -7,6 +7,7 @@ from keras.layers import Input, Embedding, GRU, Dropout, Flatten, concatenate
 from keras.layers import Dense
 from keras.models import Model
 from keras.utils import plot_model
+from sklearn.model_selection import train_test_split
 
 
 TRAIN_DATA = "../data/train.tsv"
@@ -75,16 +76,25 @@ model.compile(optimizer="rmsprop",
               loss="mean_squared_error")
 
 model.summary()
-plot_model(model, to_file="./data/model.png", show_shapes=True)
+plot_model(model, to_file="../data/model.png", show_shapes=True)
 
-train_Y = train.price
-train_Y.values
-train = train.drop("train_id", axis=1)
-train = train.drop("category_name", axis=1)
-train = train.drop("brand_name", axis=1)
-train = train.drop("price", axis=1)
-train["category"] = token_cat
-train
+Y = train.price.values
+item_des = train.item_des.values
+brand = token_brand
+category = token_cat
+item_con = train.item_condition_id.values
+shipping = train.shipping.values
+
+shipping.shape
+
+X = np.array([item_des, brand, item_con, shipping])
+X.shape
+X.shape
+
+sep_data = train_test_split(item_des, brand,
+                            item_con, shipping,
+                            category, Y, test_size=0.33)
+sep_data[9].shape
 
 model.fit({
               "item_des": train.item_des.values,
