@@ -204,6 +204,9 @@ def main():
     plot_model(mercari.model, to_file="./data/model.png", show_shapes=True)
     elapsed = time_measure("make model", start, elapsed)
     mercari.train()
+    elapsed = time_measure("train model", start, elapsed)
+    mercari.save_model(args.checkpoint_path)
+    elapsed = time_measure("save model", start, elapsed)
     K.clear_session()
 
 
