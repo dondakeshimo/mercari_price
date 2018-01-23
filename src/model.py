@@ -9,7 +9,7 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.models import model_from_json, Model
 from keras.layers import Input, Embedding, Dropout, Flatten, Dense
 from keras.layers import GRU, concatenate
-# from keras.utils import plot_model
+from keras.utils import plot_model
 # from keras import backend as K
 from sklearn.model_selection import train_test_split
 
@@ -34,8 +34,7 @@ class Predict_price():
         item_des = self.data.item_description
         item_des = item_des.fillna(NO_DES)
         item_des = item_des.apply(lambda x: 0 if x == NO_DES else 1)
-        self.data.loc[:, "item_des"] = item_des
-        self.data = self.data.drop("item_description", axis=1)
+        self.item_des = item_des.values
 
     def drop_useless(self):
         self.data = self.data.drop("name", axis=1)
@@ -48,15 +47,19 @@ class Predict_price():
         token_category = tokenizer.texts_to_sequences(category.values)
         self.category_dict = {v: k for k, v in tokenizer.word_index.items()}
         token_category = pad_sequences(token_category, maxlen=PAD_MAXLEN)
+        self.category = token_category
 
         brand = self.data.brand_name
         tokenizer = Tokenizer(split="\n", filters="\n")
         tokenizer.fit_on_texts(brand.values)
         token_brand = tokenizer.texts_to_sequences(brand.values)
         token_brand = np.array(list(chain.from_iterable(token_brand)))
+        self.brand = token_brand
         self.brand_dict = {v: k for k, v in tokenizer.word_index.items()}
 
-        return token_category, token_brand
+    def adjust_data(self):
+        self.item_con = self.data.item_condition_id.values
+        self.shipping = self.data.shipping.values
 
     def make_model(self, pre_trained_model_path=None):
         if pre_trained_model_path:
@@ -100,6 +103,7 @@ class Predict_price():
                                       input_category, input_item_con,
                                       input_shipping],
                                output=[output])
+
             self.model.compile(optimizer="rmsprop",
                                loss="mean_squared_error")
             print(self.model.summary())
@@ -174,7 +178,9 @@ def main():
     elapsed = time_measure("arrange data", start, elapsed)
     mercari.tokenize_category_n_brand()
     elapsed = time_measure("tokenize data", start, elapsed)
-    # plot_model(mercari.model, to_file="./data/model.png", show_shapes=True)
+    mercari.make_model()
+    elapsed = time_measure("make model", start, elapsed)
+    plot_model(mercari.model, to_file="./data/model.png", show_shapes=True)
     # K.clear_session()
 
 

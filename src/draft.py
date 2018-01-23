@@ -6,6 +6,7 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.layers import Input, Embedding, GRU, Dropout, Flatten, concatenate
 from keras.layers import Dense
 from keras.models import Model
+from keras.utils import plot_model
 
 
 TRAIN_DATA = "../data/train.tsv"
@@ -49,12 +50,14 @@ emb_item_des = Embedding(2, 5)(input_item_des)
 emb_brand = Embedding(10000, 30)(input_brand)
 emb_category = Embedding(10000, 30)(input_category)
 emb_item_con = Embedding(6, 5)(input_item_con)
+emb_shipping = Embedding(2, 5)(input_shipping)
 
 rnn_layer = GRU(8)(emb_category)
 
 main_l = concatenate([Flatten()(emb_item_des),
                       Flatten()(emb_brand),
                       Flatten()(emb_item_con),
+                      Flatten()(emb_shipping),
                       rnn_layer])
 
 temp_dense = Dense(512, activation="relu")(main_l)
@@ -70,6 +73,18 @@ model = Model(input=[input_item_des, input_brand, input_category,
 
 model.compile(optimizer="rmsprop",
               loss="mean_squared_error")
+
+model.summary()
+plot_model(model, to_file="./data/model.png", show_shapes=True)
+
+train_Y = train.price
+train_Y.values
+train = train.drop("train_id", axis=1)
+train = train.drop("category_name", axis=1)
+train = train.drop("brand_name", axis=1)
+train = train.drop("price", axis=1)
+train["category"] = token_cat
+train
 
 model.fit({
               "item_des": train.item_des.values,
