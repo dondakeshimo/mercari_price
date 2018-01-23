@@ -66,7 +66,7 @@ class Predict_price():
                                     self.category, self.item_con,
                                     self.shipping, self.price, test_size=0.33)
         print("training data number: {}".format(sep_data[0].shape[0]))
-        print("validation data number: {}".format(sep_data[0].shape[0]))
+        print("validation data number: {}".format(sep_data[1].shape[0]))
 
         self.X_train = {
             "item_des": sep_data[0],
