@@ -1,4 +1,3 @@
-import sys
 import time
 import argparse
 from itertools import chain
@@ -10,7 +9,7 @@ from keras.models import model_from_json, Model
 from keras.layers import Input, Embedding, Dropout, Flatten, Dense
 from keras.layers import GRU, concatenate
 from keras.utils import plot_model
-# from keras import backend as K
+from keras import backend as K
 from sklearn.model_selection import train_test_split
 
 
@@ -106,7 +105,7 @@ class Predict_price():
             emb_item_des = Embedding(2, 5)(input_item_des)
             emb_brand = Embedding(TOKEN_FEAT, 30)(input_brand)
             emb_category = Embedding(TOKEN_FEAT, 30)(input_category)
-            emb_item_con = Embedding(2, 5)(input_item_con)
+            emb_item_con = Embedding(6, 5)(input_item_con)
             emb_shipping = Embedding(2, 5)(input_shipping)
 
             rnn_layer = GRU(8)(emb_category)
@@ -166,7 +165,7 @@ def argparser():
                         required=True,
                         help="train or predict")
     parser.add_argument("-i", "--input_file_path",
-                        default="./data/issues(5).csv",
+                        default="./data/train_sample.tsv",
                         nargs="?",
                         help="input data path")
     parser.add_argument("-p", "--pre_trained_model_path",
@@ -189,18 +188,23 @@ def time_measure(section, start, elapsed):
 
 def main():
     start = time.time()
-    file_path = sys.argv[1]
-    mercari = Predict_price(file_path)
+    args = argparser()
+    print(args)
+    mercari = Predict_price(args.input_file_path)
     elapsed = time_measure("load data", start, 0)
     mercari.drop_useless()
     mercari.arrange_description()
-    elapsed = time_measure("arrange data", start, elapsed)
+    elapsed = time_measure("arrange des", start, elapsed)
     mercari.tokenize_category_n_brand()
     elapsed = time_measure("tokenize data", start, elapsed)
+    mercari.extraction_extra_data()
+    mercari.make_separate_data()
+    elapsed = time_measure("complete arrange data", start, elapsed)
     mercari.make_model()
-    elapsed = time_measure("make model", start, elapsed)
     plot_model(mercari.model, to_file="./data/model.png", show_shapes=True)
-    # K.clear_session()
+    elapsed = time_measure("make model", start, elapsed)
+    mercari.train()
+    K.clear_session()
 
 
 if __name__ == "__main__":

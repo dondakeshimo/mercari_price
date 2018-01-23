@@ -15,6 +15,9 @@ SAMPLE_DATA = "../data/sample_submission.csv"
 NO_DES = "No description yet"
 
 train = pd.read_csv(TRAIN_DATA, sep="\t")
+train_sample = train[:1000]
+train_sample.to_csv("../data/train_sample.tsv", index=None, sep="\t")
+train = pd.read_csv("../data/train_sample.tsv", sep="\t")
 train.head()
 
 item_des = train.item_description
