@@ -3,6 +3,7 @@ import argparse
 from itertools import chain
 import numpy as np
 import pandas as pd
+from termcolor import cprint
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import model_from_json, Model
@@ -182,7 +183,8 @@ def argparser():
 def time_measure(section, start, elapsed):
     lap = time.time() - start - elapsed
     elapsed = time.time() - start
-    print("{:20}: {:15.2f}[sec]{:15.2f}[sec]".format(section, lap, elapsed))
+    cprint("{:20}: {:15.2f}[sec]{:15.2f}[sec]".format(section, lap, elapsed),
+           "blue")
     return elapsed
 
 
