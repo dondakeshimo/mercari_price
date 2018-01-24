@@ -68,9 +68,9 @@ class Price_predict():
             self.train.category_name.str.lower())
         self.test["seq_category_name"] = tok_raw.texts_to_sequences(
             self.test.category_name.str.lower())
-        self.train["seq_item_description"] = tok_raw.texts_to_sequences(
+        self.train["seq_item_desc"] = tok_raw.texts_to_sequences(
             self.train.item_description.str.lower())
-        self.test["seq_item_description"] = tok_raw.texts_to_sequences(
+        self.test["seq_item_descr"] = tok_raw.texts_to_sequences(
            self.test.item_description.str.lower())
         self.train["seq_name"] = tok_raw.texts_to_sequences(
             self.train.name.str.lower())
@@ -82,10 +82,27 @@ class Price_predict():
         max_test_name = np.max(self.test.seq_name.apply(lambda x: len(x)))
         self.max_name_seq = np.max([max_train_name, max_test_name])
         max_train_desc = np.max(
-            self.train.seq_item_description.apply(lambda x: len(x)))
+            self.train.seq_item_desc.apply(lambda x: len(x)))
         max_test_desc = np.max(
-            self.test.seq_item_description.apply(lambda x: len(x)))
+            self.test.seq_item_desc.apply(lambda x: len(x)))
         self.max_item_desc_seq = np.max([max_train_desc, max_test_desc])
+
+    def define_max(self):
+        self.MAX_NAME_SEQ = 15
+        self.MAX_ITEM_DESC_SEQ = 65
+        self.MAX_CATEGORY_NAME_SEQ = 20
+        self.MAX_TEXT = np.max([np.max(self.train.seq_name.max()),
+                                np.max(self.test.seq_name.max()),
+                                np.max(self.train.seq_category_name.max()),
+                                np.max(self.test.seq_category_name.max()),
+                                np.max(self.train.seq_item_description.max()),
+                                np.max(self.test.seq_item_desc.max())]) + 2
+        self.MAX_CATEGORY = np.max([self.train.category.max(),
+                                    self.test.category.max()]) + 1
+        self.MAX_BRAND = np.max([self.train.brand_name.max(),
+                                 self.test.brand_name.max()]) + 1
+        self.MAX_CONDITION = np.max([self.train.item_condition_id.max(),
+                                     self.test.item_condition_id.max()]) + 1
 
     def extraction_extra_data(self):
         self.item_con = self.train.item_condition_id.values
