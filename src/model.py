@@ -123,11 +123,11 @@ class Predict_price():
         return X
 
     def get_keras_data_process(self):
-        dtrain, dvalid = train_test_split(self.train,
-                                          random_state=123,
-                                          train_size=0.985)
-        self.X_train = self.get_keras_data(dtrain)
-        self.X_valid = self.get_keras_data(dvalid)
+        self.dtrain, self.dvalid = train_test_split(self.train,
+                                                    random_state=123,
+                                                    train_size=0.985)
+        self.X_train = self.get_keras_data(self.dtrain)
+        self.X_valid = self.get_keras_data(self.dvalid)
         self.X_test = self.get_keras_data(self.test)
 
     def make_model(self, pre_trained_model_path=None):
@@ -199,6 +199,16 @@ class Predict_price():
                        batch_size=BATCH_SIZE,
                        validation_split=0.1,
                        verbose=1)
+
+    def evaluate(self):
+        pred = self.model.predict(self.X_valid, verbose=1)
+        pred = self.target_scaler.inverse_transform(pred)
+        pred = np.exp(pred) - 1
+
+        y_true = np.array(self.dvalid.price.values)
+        y_pred = pred[:, 0]
+        v_rmsle = rmsle(y_true, y_pred)
+        cprint(" RMSLE error on dev test: " + str(v_rmsle), "red")
 
     def predict(self, input_data):
         pred = self.model.predict(input_data, verbose=1, batch_size=BATCH_SIZE)
