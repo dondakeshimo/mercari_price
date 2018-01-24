@@ -30,6 +30,12 @@ train["item_description"].fillna(value="None", inplace=True)
 train["item_description"].replace(to_replace=NO_DESC,
                                   value="None",
                                   inplace=True)
+test["category_name"].fillna(value="None", inplace=True)
+test["brand_name"].fillna(value="None", inplace=True)
+test["item_description"].fillna(value="None", inplace=True)
+test["item_description"].replace(to_replace=NO_DESC,
+                                 value="None",
+                                 inplace=True)
 train.head()
 
 
@@ -43,6 +49,23 @@ le.fit(np.hstack([train.brand_name, test.brand_name]))
 train['brand_name'] = le.transform(train.brand_name)
 test['brand_name'] = le.transform(test.brand_name)
 del le
+train.head()
+
+raw_text = np.hstack([train.category_name.str.lower(),
+                      train.item_description.str.lower(),
+                      train.name.str.lower()])
+
+tok_raw = Tokenizer()
+tok_raw.fit_on_texts(raw_text)
+print("   Transforming text to seq...")
+train["seq_category_name"] = tok_raw.texts_to_sequences(train.category_name.str.lower())
+test["seq_category_name"] = tok_raw.texts_to_sequences(test.category_name.str.lower())
+train["seq_item_description"] = tok_raw.texts_to_sequences(train.item_description.str.lower())
+test["seq_item_description"] = tok_raw.texts_to_sequences(test.item_description.str.lower())
+train["seq_name"] = tok_raw.texts_to_sequences(train.name.str.lower())
+test["seq_name"] = tok_raw.texts_to_sequences(test.name.str.lower())
+train.head()
+
 
 item_des = train.item_description
 train.loc[:, "item_des"] = item_des.apply(lambda x: 0 if x == NO_DES else 1)
