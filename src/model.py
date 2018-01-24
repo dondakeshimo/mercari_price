@@ -9,9 +9,9 @@ from keras.models import model_from_json, Model
 from keras.layers import Input, Embedding, Dropout, Flatten, Dense
 from keras.layers import GRU, concatenate
 from keras.utils import plot_model
-from keras.callbacks import ModelCheckpoint, Callback, EarlyStopping
+from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras import backend as K
-from sklearn.preprocessing import LabelEncoder, MinMaxScaler, StandardScaler
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 
 
 EPOCHS = 2
@@ -63,7 +63,7 @@ class Predict_price():
             self.test.category_name.str.lower())
         self.train["seq_item_desc"] = tok_raw.texts_to_sequences(
             self.train.item_description.str.lower())
-        self.test["seq_item_descr"] = tok_raw.texts_to_sequences(
+        self.test["seq_item_desc"] = tok_raw.texts_to_sequences(
            self.test.item_description.str.lower())
         self.train["seq_name"] = tok_raw.texts_to_sequences(
             self.train.name.str.lower())
@@ -88,7 +88,7 @@ class Predict_price():
                                 np.max(self.test.seq_name.max()),
                                 np.max(self.train.seq_category_name.max()),
                                 np.max(self.test.seq_category_name.max()),
-                                np.max(self.train.seq_item_description.max()),
+                                np.max(self.train.seq_item_desc.max()),
                                 np.max(self.test.seq_item_desc.max())]) + 2
         self.MAX_CATEGORY = np.max([self.train.category.max(),
                                     self.test.category.max()]) + 1
@@ -136,24 +136,24 @@ class Predict_price():
             self.model.load_weights(pre_trained_model_path + ".h5")
             print(self.model.summary())
         else:
-            name = Input(shape=self.X_train["name"].shape[1],
+            name = Input(shape=[self.X_train["name"].shape[1]],
                          name="name")
-            item_desc = Input(shape=self.X_train["item_desc"].shape[1],
+            item_desc = Input(shape=[self.X_train["item_desc"].shape[1]],
                               name="item_desc")
-            brand_name = Input(shape=self.X_train["brand_name"].shape[1],
-                               name="item_des")
-            category = Input(shape=self.X_train["category"].shape[1],
-                             name="item_des")
-            category_name = Input(shape=self.X_train["category_name"].shape[1],
-                                  name="item_des")
-            item_cond = Input(shape=self.X_train["item_cond"].shape[1],
-                              name="item_des")
-            num_vars = Input(shape=self.X_train["num_vars"].shape[1],
-                             name="item_des")
+            brand_name = Input(shape=[1],
+                               name="brand_name")
+            category = Input(shape=[1],
+                             name="category")
+            ctgr_name = Input(shape=[self.X_train["category_name"].shape[1]],
+                              name="category_name")
+            item_cond = Input(shape=[1],
+                              name="item_cond")
+            num_vars = Input(shape=[1],
+                             name="num_vars")
 
             emb_name = Embedding(self.MAX_TEXT, 60)(name)
             emb_item_desc = Embedding(self.MAX_TEXT, 60)(item_desc)
-            emb_category_name = Embedding(self.MAX_TEXT, 20)(category_name)
+            emb_category_name = Embedding(self.MAX_TEXT, 20)(ctgr_name)
             emb_brand_name = Embedding(self.MAX_BRAND, 10)(brand_name)
             emb_category = Embedding(self.MAX_CATEGORY, 10)(category)
             emb_item_cond = Embedding(self.MAX_CONDITION, 5)(item_cond)
@@ -177,19 +177,19 @@ class Predict_price():
 
             output = Dense(1, activation="linear")(main_layer)
 
-            self.model = Model(input=[name, item_desc, brand_name,
-                                      category, category_name,
-                                      item_cond, num_vars],
-                               output=[output])
+            self.model = Model(inputs=[name, item_desc, brand_name,
+                                       category, ctgr_name,
+                                       item_cond, num_vars],
+                               outputs=[output])
 
             self.model.compile(optimizer="adam",
                                loss="mse",
                                metrics=["mae", rmsle_cust])
             print(self.model.summary())
 
-    def train(self):
+    def train_model(self):
         self.model.fit(self.X_train,
-                       self.train.target,
+                       self.train.target.values,
                        epochs=EPOCHS,
                        batch_size=BATCH_SIZE,
                        validation_split=0.1,
@@ -253,7 +253,7 @@ def argparser():
 def time_measure(section, start, elapsed):
     lap = time.time() - start - elapsed
     elapsed = time.time() - start
-    cprint("{:20}: {:15.2f}[sec]{:15.2f}[sec]".format(section, lap, elapsed),
+    cprint("{:22}: {:15.2f}[sec]{:15.2f}[sec]".format(section, lap, elapsed),
            "blue")
     return elapsed
 
@@ -267,14 +267,17 @@ def main():
     mercari.handle_nan_process()
     elapsed = time_measure("handle nan", start, elapsed)
     mercari.label_encode()
+    elapsed = time_measure("label encode data", start, elapsed)
     mercari.tokenize_seq_data()
     elapsed = time_measure("tokenize data", start, elapsed)
+    mercari.define_max()
+    mercari.arrange_target()
     mercari.get_keras_data_process()
     elapsed = time_measure("complete arrange data", start, elapsed)
     mercari.make_model()
     plot_model(mercari.model, to_file="./data/model.png", show_shapes=True)
     elapsed = time_measure("make model", start, elapsed)
-    mercari.train()
+    mercari.train_model()
     elapsed = time_measure("train model", start, elapsed)
     mercari.save_model(args.checkpoint_path)
     elapsed = time_measure("save model", start, elapsed)
