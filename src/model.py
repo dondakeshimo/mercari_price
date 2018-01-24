@@ -1,6 +1,5 @@
 import time
 import argparse
-from itertools import chain
 import numpy as np
 import pandas as pd
 from termcolor import cprint
@@ -11,7 +10,6 @@ from keras.layers import Input, Embedding, Dropout, Flatten, Dense
 from keras.layers import GRU, concatenate
 from keras.utils import plot_model
 from keras import backend as K
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler, StandardScaler
 
 
@@ -22,17 +20,12 @@ GRU_OUT = 1
 EPOCHS = 30
 BATCH_SIZE = 32
 TEST_SIZE = 0.33
-MAX_NAME_SEQ = 15
-MAX_ITEM_DESC_SEQ = 65
-MAX_CATEGORY_NAME_SEQ = 20
-# dictionary length is 1144
-# dictionary length is 4979
 
 
 class Price_predict():
-    def __init__(self, file_path):
-        self.train = pd.read_csv(file_path, sep="\t")
-        self.test = pd.read_csv(file_path, sep="\t")
+    def __init__(self, dir_path):
+        self.train = pd.read_csv(dir_path + "train.tsv", sep="\t")
+        self.test = pd.read_csv(dir_path + "test.tsv", sep="\t")
         self.train["target"] = np.log1p(self.train["price"])
 
     def handle_nan(self, dataset):
@@ -208,6 +201,18 @@ class Price_predict():
             f.write(self.model.to_json())
 
 
+def get_callbacks(checkpoint_path, patience=2):
+    es = EarlyStopping('val_loss', patience=patience, mode="min")
+    msave = ModelCheckpoint(filepath, save_best_only=True)
+    return [es, msave]
+
+
+def rmsle_cust(y_true, y_pred):
+    first_log = K.log(K.clip(y_pred, K.epsilon(), None) + 1.)
+    second_log = K.log(K.clip(y_true, K.epsilon(), None) + 1.)
+    return K.sqrt(K.mean(K.square(first_log - second_log), axis=-1))
+
+
 def rmsle(y_true, y_pred):
     assert len(y_true) == len(y_pred)
     return (np.square(np.log(y_pred + 1) - np.log(y_true + 1)).mean())**0.5
@@ -218,10 +223,9 @@ def argparser():
     parser.add_argument("-m", "--mode",
                         default=None,
                         nargs="?",
-                        required=True,
                         help="train or predict")
-    parser.add_argument("-i", "--input_file_path",
-                        default="./data/train_sample.tsv",
+    parser.add_argument("-i", "--input_dir_path",
+                        default="./data/",
                         nargs="?",
                         help="input data path")
     parser.add_argument("-p", "--pre_trained_model_path",
