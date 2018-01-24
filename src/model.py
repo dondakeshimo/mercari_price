@@ -110,29 +110,23 @@ class Price_predict():
         self.train["target"] = target_scaler.fit_transform(
             self.train.target.values.reshape(-1, 1))
 
-    def make_separate_data(self):
-        sep_data = train_test_split(self.item_des, self.brand,
-                                    self.category, self.item_con,
-                                    self.shipping, self.price, test_size=0.33)
-        print("training data number: {}".format(sep_data[0].shape[0]))
-        print("validation data number: {}".format(sep_data[1].shape[0]))
-
-        self.X_train = {
-            "item_des": sep_data[0],
-            "brand": sep_data[2],
-            "category": sep_data[4],
-            "item_con": sep_data[6],
-            "shipping": sep_data[8],
+    def get_keras_data(self, dataset):
+        name = pad_sequences(
+            dataset.seq_name, maxlen=self.MAX_NAME_SEQ)
+        item_desc = pad_sequences(
+            dataset.seq_item_desc, maxlen=self.MAX_ITEM_DESC_SEQ)
+        category_name = pad_sequences(
+            dataset.seq_category_name, maxlen=self.MAX_CATEGORY_NAME_SEQ)
+        X = {
+            "name": name,
+            "item_desc": item_desc,
+            "brand_name": np.array(dataset.brand_name),
+            "category": np.array(dataset.category),
+            "category_name": category_name,
+            "item_condition": np.array(dataset.item_condition_id),
+            "num_vars": np.array(dataset[["shipping"]])
         }
-        self.Y_train = sep_data[10]
-        self.X_test = {
-            "item_des": sep_data[1],
-            "brand": sep_data[3],
-            "category": sep_data[5],
-            "item_con": sep_data[7],
-            "shipping": sep_data[9],
-        }
-        self.Y_test = sep_data[11]
+        return X
 
     def make_model(self, pre_trained_model_path=None):
         if pre_trained_model_path:
@@ -202,7 +196,7 @@ class Price_predict():
 
     def save_model(self, checkpoint_path):
         self.model.save_weights(checkpoint_path + ".h5")
-        with open(checkpoint_path + ".json", 'w') as f:
+        with open(checkpoint_path + ".json", "w") as f:
             f.write(self.model.to_json())
 
 
