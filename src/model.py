@@ -12,7 +12,7 @@ from keras.utils import plot_model
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras import backend as K
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 
 
 EPOCHS = 2
@@ -194,7 +194,7 @@ class Predict_price():
 
     def train_model(self):
         self.model.fit(self.X_train,
-                       self.train.target.values,
+                       self.dtrain.target.values,
                        epochs=EPOCHS,
                        batch_size=BATCH_SIZE,
                        validation_split=0.1,
