@@ -28,17 +28,15 @@ TEST_SIZE = 0.33
 
 class Price_predict():
     def __init__(self, file_path):
-        train = pd.read_csv(file_path, sep="\t")
-        test = pd.read_csv(file_path, sep="\t")
-        train["target"] = np.log1p(train["price"])
-        return train, test
+        self.train = pd.read_csv(file_path, sep="\t")
+        self.test = pd.read_csv(file_path, sep="\t")
+        self.train["target"] = np.log1p(self.train["price"])
 
     def handle_nan(self, dataset):
         NO_DESC = "No description yet"
         dataset.category_name.fillna(value="None", inplace=True)
         dataset.brand_name.fillna(value="None", inplace=True)
         dataset.item_description.fillna(value="None", inplace=True)
-
         dataset.item_description.replace(to_replace=NO_DESC,
                                          value="None",
                                          inplace=True)
@@ -47,34 +45,34 @@ class Price_predict():
     def label_encode(self):
         le = LabelEncoder()
 
-        le.fit(np.hstack([train.category_name, test.category_name]))
-        train['category'] = le.transform(train.category_name)
-        test['category'] = le.transform(test.category_name)
+        le.fit(np.hstack([self.train.category_name, self.test.category_name]))
+        self.train['category'] = le.transform(self.train.category_name)
+        self.test['category'] = le.transform(self.test.category_name)
 
-        le.fit(np.hstack([train.brand_name, test.brand_name]))
-        train['brand_name'] = le.transform(train.brand_name)
-        test['brand_name'] = le.transform(test.brand_name)
+        le.fit(np.hstack([self.train.brand_name, self.test.brand_name]))
+        self.train['brand_name'] = le.transform(self.train.brand_name)
+        self.test['brand_name'] = le.transform(self.test.brand_name)
         del le
-        return train, test
 
     def tokenize_seq_data(self):
-        raw_text = np.hstack([train.category_name.str.lower(),
-                              train.item_description.str.lower(),
-                              train.name.str.lower()])
+        raw_text = np.hstack([self.train.category_name.str.lower(),
+                              self.train.item_description.str.lower(),
+                              self.train.name.str.lower()])
 
         tok_raw = Tokenizer()
         tok_raw.fit_on_texts(raw_text)
-        train["seq_category_name"] = tok_raw.texts_to_sequences(
-                                         train.category_name.str.lower())
-        test["seq_category_name"] = tok_raw.texts_to_sequences(
-                                        test.category_name.str.lower())
-        train["seq_item_description"] = tok_raw.texts_to_sequences(
-                                            train.item_description.str.lower())
-        test["seq_item_description"] = tok_raw.texts_to_sequences(
-                                           test.item_description.str.lower())
-        train["seq_name"] = tok_raw.texts_to_sequences(train.name.str.lower())
-        test["seq_name"] = tok_raw.texts_to_sequences(test.name.str.lower())
-        return train, test
+        self.train["seq_category_name"] = tok_raw.texts_to_sequences(
+            self.train.category_name.str.lower())
+        self.test["seq_category_name"] = tok_raw.texts_to_sequences(
+            self.test.category_name.str.lower())
+        self.train["seq_item_description"] = tok_raw.texts_to_sequences(
+            self.train.item_description.str.lower())
+        self.test["seq_item_description"] = tok_raw.texts_to_sequences(
+           self.test.item_description.str.lower())
+        self.train["seq_name"] = tok_raw.texts_to_sequences(
+            self.train.name.str.lower())
+        self.test["seq_name"] = tok_raw.texts_to_sequences(
+            self.test.name.str.lower())
 
     def extraction_extra_data(self):
         self.item_con = self.train.item_condition_id.values
