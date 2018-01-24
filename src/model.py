@@ -130,67 +130,67 @@ class Predict_price():
         self.X_valid = self.get_keras_data(self.dvalid)
         self.X_test = self.get_keras_data(self.test)
 
+    def make_model_from_pre_trained(self, pre_trained_model_path):
+        with open(pre_trained_model_path + ".json", "rt")as f:
+            json_model = f.read()
+        self.model = model_from_json(json_model)
+        self.model.compile(loss="mean_squared_error",
+                           optimizer="adam",
+                           metrics=["accuracy"])
+        self.model.load_weights(pre_trained_model_path + ".h5")
+        # print(self.model.summary())
+
     def make_model(self, pre_trained_model_path=None):
-        if pre_trained_model_path:
-            with open(pre_trained_model_path + ".json", "rt")as f:
-                json_model = f.read()
-            self.model = model_from_json(json_model)
-            self.model.compile(loss="mean_squared_error",
-                               optimizer="adam",
-                               metrics=["accuracy"])
-            self.model.load_weights(pre_trained_model_path + ".h5")
-            # print(self.model.summary())
-        else:
-            name = Input(shape=[self.X_train["name"].shape[1]],
-                         name="name")
-            item_desc = Input(shape=[self.X_train["item_desc"].shape[1]],
-                              name="item_desc")
-            brand_name = Input(shape=[1],
-                               name="brand_name")
-            category = Input(shape=[1],
-                             name="category")
-            ctgr_name = Input(shape=[self.X_train["category_name"].shape[1]],
-                              name="category_name")
-            item_cond = Input(shape=[1],
-                              name="item_cond")
-            num_vars = Input(shape=[1],
-                             name="num_vars")
+        name = Input(shape=[self.X_train["name"].shape[1]],
+                     name="name")
+        item_desc = Input(shape=[self.X_train["item_desc"].shape[1]],
+                          name="item_desc")
+        brand_name = Input(shape=[1],
+                           name="brand_name")
+        category = Input(shape=[1],
+                         name="category")
+        ctgr_name = Input(shape=[self.X_train["category_name"].shape[1]],
+                          name="category_name")
+        item_cond = Input(shape=[1],
+                          name="item_cond")
+        num_vars = Input(shape=[1],
+                         name="num_vars")
 
-            emb_name = Embedding(self.MAX_TEXT, 60)(name)
-            emb_item_desc = Embedding(self.MAX_TEXT, 60)(item_desc)
-            emb_category_name = Embedding(self.MAX_TEXT, 20)(ctgr_name)
-            emb_brand_name = Embedding(self.MAX_BRAND, 10)(brand_name)
-            emb_category = Embedding(self.MAX_CATEGORY, 10)(category)
-            emb_item_cond = Embedding(self.MAX_CONDITION, 5)(item_cond)
+        emb_name = Embedding(self.MAX_TEXT, 60)(name)
+        emb_item_desc = Embedding(self.MAX_TEXT, 60)(item_desc)
+        emb_category_name = Embedding(self.MAX_TEXT, 20)(ctgr_name)
+        emb_brand_name = Embedding(self.MAX_BRAND, 10)(brand_name)
+        emb_category = Embedding(self.MAX_CATEGORY, 10)(category)
+        emb_item_cond = Embedding(self.MAX_CONDITION, 5)(item_cond)
 
-            rnn_layer1 = GRU(16)(emb_item_desc)
-            rnn_layer2 = GRU(16)(emb_category_name)
-            rnn_layer3 = GRU(8)(emb_name)
+        rnn_layer1 = GRU(16)(emb_item_desc)
+        rnn_layer2 = GRU(16)(emb_category_name)
+        rnn_layer3 = GRU(8)(emb_name)
 
-            main_layer = concatenate([Flatten()(emb_brand_name),
-                                      Flatten()(emb_category),
-                                      Flatten()(emb_item_cond),
-                                      rnn_layer1,
-                                      rnn_layer2,
-                                      rnn_layer3,
-                                      num_vars])
+        main_layer = concatenate([Flatten()(emb_brand_name),
+                                  Flatten()(emb_category),
+                                  Flatten()(emb_item_cond),
+                                  rnn_layer1,
+                                  rnn_layer2,
+                                  rnn_layer3,
+                                  num_vars])
 
-            temp_dense = Dense(512, activation="relu")(main_layer)
-            main_layer = Dropout(0.05)(temp_dense)
-            temp_dense = Dense(16, activation="relu")(main_layer)
-            main_layer = Dropout(0.05)(temp_dense)
+        temp_dense = Dense(512, activation="relu")(main_layer)
+        main_layer = Dropout(0.05)(temp_dense)
+        temp_dense = Dense(16, activation="relu")(main_layer)
+        main_layer = Dropout(0.05)(temp_dense)
 
-            output = Dense(1, activation="linear")(main_layer)
+        output = Dense(1, activation="linear")(main_layer)
 
-            self.model = Model(inputs=[name, item_desc, brand_name,
-                                       category, ctgr_name,
-                                       item_cond, num_vars],
-                               outputs=[output])
+        self.model = Model(inputs=[name, item_desc, brand_name,
+                                   category, ctgr_name,
+                                   item_cond, num_vars],
+                           outputs=[output])
 
-            self.model.compile(optimizer="adam",
-                               loss="mse",
-                               metrics=["mae", rmsle_cust])
-            # print(self.model.summary())
+        self.model.compile(optimizer="adam",
+                           loss="mse",
+                           metrics=["mae", rmsle_cust])
+        # print(self.model.summary())
 
     def train_model(self):
         self.model.fit(self.X_train,
@@ -302,7 +302,7 @@ def main():
     elapsed = time_measure("save model", start, elapsed)
     mercari.evaluate()
     elapsed = time_measure("evaluation", start, elapsed)
-    mercari.make_submission()
+    mercari.make_submission(args.submission_path)
     elapsed = time_measure("make submission", start, elapsed)
     K.clear_session()
 
