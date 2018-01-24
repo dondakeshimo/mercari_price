@@ -8,13 +8,16 @@ from keras.layers import Dense
 from keras.models import Model
 from keras.utils import plot_model
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler, StandardScaler
 
 
 TRAIN_DATA = "../data/train.tsv"
+TEST_DATA = "../data/test.tsv"
 SAMPLE_DATA = "../data/sample_submission.csv"
 NO_DES = "No description yet"
 
 train = pd.read_csv(TRAIN_DATA, sep="\t")
+test = pd.read_csv(TEST_DATA, sep="\t")
 train.head()
 
 train["target"] = np.log1p(train["price"])
@@ -28,6 +31,18 @@ train["item_description"].replace(to_replace=NO_DESC,
                                   value="None",
                                   inplace=True)
 train.head()
+
+
+le = LabelEncoder()
+
+le.fit(np.hstack([train.category_name, test.category_name]))
+train['category'] = le.transform(train.category_name)
+test['category'] = le.transform(test.category_name)
+
+le.fit(np.hstack([train.brand_name, test.brand_name]))
+train['brand_name'] = le.transform(train.brand_name)
+test['brand_name'] = le.transform(test.brand_name)
+del le
 
 item_des = train.item_description
 train.loc[:, "item_des"] = item_des.apply(lambda x: 0 if x == NO_DES else 1)
