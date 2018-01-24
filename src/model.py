@@ -45,6 +45,10 @@ class Price_predict():
                                          inplace=True)
         return dataset
 
+    def handle_nan_process(self):
+        self.train = self.handle_nan(self.train)
+        self.test = self.handle_nan(self.test)
+
     def label_encode(self):
         le = LabelEncoder()
 
@@ -127,6 +131,10 @@ class Price_predict():
             "num_vars": np.array(dataset[["shipping"]])
         }
         return X
+
+    def get_keras_data_process(self):
+        self.X_train = self.get_keras_data(self.train)
+        self.X_test = self.get_keras_data(self.test)
 
     def make_model(self, pre_trained_model_path=None):
         if pre_trained_model_path:
