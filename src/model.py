@@ -12,6 +12,7 @@ from keras.layers import GRU, concatenate
 from keras.utils import plot_model
 from keras import backend as K
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler, StandardScaler
 
 
 PAD_MAXLEN = 100

@@ -15,9 +15,18 @@ SAMPLE_DATA = "../data/sample_submission.csv"
 NO_DES = "No description yet"
 
 train = pd.read_csv(TRAIN_DATA, sep="\t")
-train_sample = train[:1000]
-train_sample.to_csv("../data/train_sample.tsv", index=None, sep="\t")
-train = pd.read_csv("../data/train_sample.tsv", sep="\t")
+train.head()
+
+train["target"] = np.log1p(train["price"])
+train.head()
+
+NO_DESC = "No description yet"
+train["category_name"].fillna(value="None", inplace=True)
+train["brand_name"].fillna(value="None", inplace=True)
+train["item_description"].fillna(value="None", inplace=True)
+train["item_description"].replace(to_replace=NO_DESC,
+                                  value="None",
+                                  inplace=True)
 train.head()
 
 item_des = train.item_description
