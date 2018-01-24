@@ -196,8 +196,8 @@ class Predict_price():
         self.model.fit(self.X_train,
                        self.dtrain.target.values,
                        epochs=EPOCHS,
-                       verbose=0
-                       batch_size=BATCH_SIZE)
+                       batch_size=BATCH_SIZE,
+                       verbose=0)
 
     def evaluate(self):
         pred = self.model.predict(self.X_valid, verbose=0)
@@ -246,7 +246,7 @@ def rmsle(y_true, y_pred):
 def time_measure(section, start, elapsed):
     lap = time.time() - start - elapsed
     elapsed = time.time() - start
-    cprint("{:22}: {:15.2f}[sec]{:15.2f}[sec]".format(section, lap, elapsed),
+    cprint("{:22}: {:10.2f}[sec]{:10.2f}[sec]".format(section, lap, elapsed),
            "blue")
     return elapsed
 
@@ -254,16 +254,25 @@ def time_measure(section, start, elapsed):
 def main():
     start = time.time()
     mercari = Predict_price("../input/")
+    elapsed = time_measure("load data", start, 0)
     mercari.handle_nan_process()
+    elapsed = time_measure("handle nan", start, elapsed)
     mercari.label_encode()
+    elapsed = time_measure("label encode data", start, elapsed)
     mercari.tokenize_seq_data()
+    elapsed = time_measure("tokenize data", start, elapsed)
     mercari.define_max()
     mercari.arrange_target()
     mercari.get_keras_data_process()
+    elapsed = time_measure("complete arrange data", start, elapsed)
     mercari.make_model()
+    elapsed = time_measure("make model", start, elapsed)
     mercari.train_model()
+    elapsed = time_measure("train model", start, elapsed)
     mercari.evaluate()
+    elapsed = time_measure("evaluation", start, elapsed)
     mercari.make_submission("./RNNsubmission.csv")
+    elapsed = time_measure("make submission", start, elapsed)
     K.clear_session()
 
 
