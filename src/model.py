@@ -29,6 +29,7 @@ class Predict_price():
     def __init__(self, file_path):
         self.train = pd.read_csv(file_path, sep="\t")
         self.test = pd.read_csv(file_path, sep="\t")
+        self.train["target"] = np.log1p(self.train["price"])
 
     def arrange_description(self):
         NO_DES = "No description yet"
