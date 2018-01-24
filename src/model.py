@@ -38,9 +38,10 @@ class Predict_price():
         item_des = item_des.apply(lambda x: 0 if x == NO_DES else 1)
         self.item_des = item_des.values
 
-    def drop_useless(self):
-        self.train = self.train.drop("name", axis=1)
-        self.train = self.train.fillna("None")
+    def handle_nan(self):
+        self.train["category_name"].fillna(value="None", inplace=True)
+        self.train["brand_name"].fillna(value="None", inplace=True)
+        self.train["item_description"].fillna(value="None", inplace=True)
 
     def tokenize_category_n_brand(self):
         category = self.train.category_name
