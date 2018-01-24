@@ -44,6 +44,20 @@ def handle_nan(dataset):
     return dataset
 
 
+def label_encode(train, test):
+    le = LabelEncoder()
+
+    le.fit(np.hstack([train.category_name, test.category_name]))
+    train['category'] = le.transform(train.category_name)
+    test['category'] = le.transform(test.category_name)
+
+    le.fit(np.hstack([train.brand_name, test.brand_name]))
+    train['brand_name'] = le.transform(train.brand_name)
+    test['brand_name'] = le.transform(test.brand_name)
+    del le
+    return train, test
+
+
 def tokenize_category_n_brand(self):
     category = self.train.category_name
     tokenizer = Tokenizer(split="/")
