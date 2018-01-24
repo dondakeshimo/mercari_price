@@ -300,6 +300,10 @@ def main():
     elapsed = time_measure("train model", start, elapsed)
     mercari.save_model(args.checkpoint_path)
     elapsed = time_measure("save model", start, elapsed)
+    mercari.evaluate()
+    elapsed = time_measure("evaluation", start, elapsed)
+    mercari.make_submission()
+    elapsed = time_measure("make submission", start, elapsed)
     K.clear_session()
 
 
