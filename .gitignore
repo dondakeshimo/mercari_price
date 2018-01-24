@@ -3,4 +3,5 @@
 __pycache__
 
 data/*
+!.gitkeep
 src/sample.py
