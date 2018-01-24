@@ -104,6 +104,12 @@ class Price_predict():
         self.MAX_CONDITION = np.max([self.train.item_condition_id.max(),
                                      self.test.item_condition_id.max()]) + 1
 
+    def arrange_target(self):
+        self.train["target"] = np.log(self.train.price + 1)
+        target_scaler = MinMaxScaler(feature_range=(-1, 1))
+        self.train["target"] = target_scaler.fit_transform(
+            self.train.target.values.reshape(-1, 1))
+
     def extraction_extra_data(self):
         self.item_con = self.train.item_condition_id.values
         self.shipping = self.train.shipping.values
