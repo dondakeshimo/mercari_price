@@ -206,6 +206,11 @@ class Predict_price():
         with open(checkpoint_path + ".json", "w") as f:
             f.write(self.model.to_json())
 
+    def make_submission(self, submission_path):
+        submission = self.test["test_id"]
+        submission["price"] = self.predict(self.X_test)
+        submission.to_csv(submission_path, index=False)
+
 
 def get_callbacks(checkpoint_path, patience=2):
     es = EarlyStopping('val_loss', patience=patience, mode="min")
