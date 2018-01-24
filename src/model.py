@@ -27,21 +27,22 @@ TEST_SIZE = 0.33
 
 class Predict_price():
     def __init__(self, file_path):
-        self.data = pd.read_table(file_path)
+        self.train = pd.read_csv(file_path, sep="\t")
+        self.test = pd.read_csv(file_path, sep="\t")
 
     def arrange_description(self):
         NO_DES = "No description yet"
-        item_des = self.data.item_description
+        item_des = self.train.item_description
         item_des = item_des.fillna(NO_DES)
         item_des = item_des.apply(lambda x: 0 if x == NO_DES else 1)
         self.item_des = item_des.values
 
     def drop_useless(self):
-        self.data = self.data.drop("name", axis=1)
-        self.data = self.data.fillna("None")
+        self.train = self.train.drop("name", axis=1)
+        self.train = self.train.fillna("None")
 
     def tokenize_category_n_brand(self):
-        category = self.data.category_name
+        category = self.train.category_name
         tokenizer = Tokenizer(split="/")
         tokenizer.fit_on_texts(category.values)
         token_category = tokenizer.texts_to_sequences(category.values)
@@ -49,7 +50,7 @@ class Predict_price():
         token_category = pad_sequences(token_category, maxlen=PAD_MAXLEN)
         self.category = token_category
 
-        brand = self.data.brand_name
+        brand = self.train.brand_name
         tokenizer = Tokenizer(split="\n", filters="\n")
         tokenizer.fit_on_texts(brand.values)
         token_brand = tokenizer.texts_to_sequences(brand.values)
@@ -58,9 +59,9 @@ class Predict_price():
         self.brand_dict = {v: k for k, v in tokenizer.word_index.items()}
 
     def extraction_extra_data(self):
-        self.item_con = self.data.item_condition_id.values
-        self.shipping = self.data.shipping.values
-        self.price = self.data.price.values
+        self.item_con = self.train.item_condition_id.values
+        self.shipping = self.train.shipping.values
+        self.price = self.train.price.values
 
     def make_separate_data(self):
         sep_data = train_test_split(self.item_des, self.brand,
