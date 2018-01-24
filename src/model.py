@@ -14,13 +14,8 @@ from keras import backend as K
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler, StandardScaler
 
 
-PAD_MAXLEN = 100
-TOKEN_FEAT = 10000
-EMBED_DIM = 128
-GRU_OUT = 1
-EPOCHS = 30
-BATCH_SIZE = 32
-TEST_SIZE = 0.33
+EPOCHS = 2
+BATCH_SIZE = 512 * 3
 
 
 class Predict_price():
@@ -194,7 +189,7 @@ class Predict_price():
 
     def train(self):
         self.model.fit(self.X_train,
-                       self.Y_train,
+                       self.train.target,
                        epochs=EPOCHS,
                        batch_size=BATCH_SIZE,
                        validation_split=0.1,
@@ -267,15 +262,14 @@ def main():
     start = time.time()
     args = argparser()
     print(args)
-    mercari = Predict_price(args.input_file_path)
+    mercari = Predict_price(args.input_dir_path)
     elapsed = time_measure("load data", start, 0)
-    mercari.drop_useless()
-    mercari.arrange_description()
-    elapsed = time_measure("arrange des", start, elapsed)
-    mercari.tokenize_category_n_brand()
+    mercari.handle_nan_process()
+    elapsed = time_measure("handle nan", start, elapsed)
+    mercari.label_encode()
+    mercari.tokenize_seq_data()
     elapsed = time_measure("tokenize data", start, elapsed)
-    mercari.extraction_extra_data()
-    mercari.make_separate_data()
+    mercari.get_keras_data_process()
     elapsed = time_measure("complete arrange data", start, elapsed)
     mercari.make_model()
     plot_model(mercari.model, to_file="./data/model.png", show_shapes=True)
