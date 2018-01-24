@@ -134,7 +134,7 @@ class Predict_price():
                                optimizer="adam",
                                metrics=["accuracy"])
             self.model.load_weights(pre_trained_model_path + ".h5")
-            print(self.model.summary())
+            # print(self.model.summary())
         else:
             name = Input(shape=[self.X_train["name"].shape[1]],
                          name="name")
@@ -185,7 +185,7 @@ class Predict_price():
             self.model.compile(optimizer="adam",
                                loss="mse",
                                metrics=["mae", rmsle_cust])
-            print(self.model.summary())
+            # print(self.model.summary())
 
     def train_model(self):
         self.model.fit(self.X_train,
@@ -195,16 +195,11 @@ class Predict_price():
                        validation_split=0.1,
                        verbose=1)
 
-    def evaluate(self):
-        print("Evaluation")
-        return self.model.evaluate(self.X_test,
-                                   self.Y_test,
-                                   batch_size=BATCH_SIZE,
-                                   verbose=1)
-
-    def predict(self, target):
-        print("Prediction")
-        return self.model.predict(target, verbose=1)
+    def predict(self, input_data):
+        preds = self.model.predict(input_data, verbose=1)
+        preds = self.target_scaler.inverse_transform(preds)
+        preds = np.exp(preds) - 1
+        return preds
 
     def save_model(self, checkpoint_path):
         self.model.save_weights(checkpoint_path + ".h5")
