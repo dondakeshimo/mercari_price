@@ -9,6 +9,7 @@ from keras.models import model_from_json, Model
 from keras.layers import Input, Embedding, Dropout, Flatten, Dense
 from keras.layers import GRU, concatenate
 from keras.utils import plot_model
+from keras.callbacks import ModelCheckpoint, Callback, EarlyStopping
 from keras import backend as K
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler, StandardScaler
 
@@ -22,7 +23,7 @@ BATCH_SIZE = 32
 TEST_SIZE = 0.33
 
 
-class Price_predict():
+class Predict_price():
     def __init__(self, dir_path):
         self.train = pd.read_csv(dir_path + "train.tsv", sep="\t")
         self.test = pd.read_csv(dir_path + "test.tsv", sep="\t")
@@ -120,8 +121,8 @@ class Price_predict():
             "brand_name": np.array(dataset.brand_name),
             "category": np.array(dataset.category),
             "category_name": category_name,
-            "item_condition": np.array(dataset.item_condition_id),
-            "num_vars": np.array(dataset[["shipping"]])
+            "item_cond": np.array(dataset.item_condition_id),
+            "num_vars": np.array(dataset.shipping)
         }
         return X
 
@@ -140,40 +141,55 @@ class Price_predict():
             self.model.load_weights(pre_trained_model_path + ".h5")
             print(self.model.summary())
         else:
-            input_item_des = Input(shape=[1], name="item_des")
-            input_brand = Input(shape=[1], name="brand")
-            input_category = Input(shape=[PAD_MAXLEN], name="category")
-            input_item_con = Input(shape=[1], name="item_con")
-            input_shipping = Input(shape=[1], name="shipping")
+            name = Input(shape=self.X_train["name"].shape[1],
+                         name="name")
+            item_desc = Input(shape=self.X_train["item_desc"].shape[1],
+                              name="item_desc")
+            brand_name = Input(shape=self.X_train["brand_name"].shape[1],
+                               name="item_des")
+            category = Input(shape=self.X_train["category"].shape[1],
+                             name="item_des")
+            category_name = Input(shape=self.X_train["category_name"].shape[1],
+                                  name="item_des")
+            item_cond = Input(shape=self.X_train["item_cond"].shape[1],
+                              name="item_des")
+            num_vars = Input(shape=self.X_train["num_vars"].shape[1],
+                             name="item_des")
 
-            emb_item_des = Embedding(2, 5)(input_item_des)
-            emb_brand = Embedding(TOKEN_FEAT, 30)(input_brand)
-            emb_category = Embedding(TOKEN_FEAT, 30)(input_category)
-            emb_item_con = Embedding(6, 5)(input_item_con)
-            emb_shipping = Embedding(2, 5)(input_shipping)
+            emb_name = Embedding(self.MAX_TEXT, 60)(name)
+            emb_item_desc = Embedding(self.MAX_TEXT, 60)(item_desc)
+            emb_category_name = Embedding(self.MAX_TEXT, 20)(category_name)
+            emb_brand_name = Embedding(self.MAX_BRAND, 10)(brand_name)
+            emb_category = Embedding(self.MAX_CATEGORY, 10)(category)
+            emb_item_cond = Embedding(self.MAX_CONDITION, 5)(item_cond)
 
-            rnn_layer = GRU(8)(emb_category)
+            rnn_layer1 = GRU(16)(emb_item_desc)
+            rnn_layer2 = GRU(16)(emb_category_name)
+            rnn_layer3 = GRU(8)(emb_name)
 
-            main_layer = concatenate([Flatten()(emb_item_des),
-                                      Flatten()(emb_brand),
-                                      Flatten()(emb_item_con),
-                                      Flatten()(emb_shipping),
-                                      rnn_layer])
+            main_layer = concatenate([Flatten()(emb_brand_name),
+                                      Flatten()(emb_category),
+                                      Flatten()(emb_item_cond),
+                                      rnn_layer1,
+                                      rnn_layer2,
+                                      rnn_layer3,
+                                      num_vars])
 
             temp_dense = Dense(512, activation="relu")(main_layer)
-            main_layer = Dropout(0.3)(temp_dense)
-            temp_dense = Dense(96, activation="relu")(main_layer)
-            main_layer = Dropout(0.2)(temp_dense)
+            main_layer = Dropout(0.05)(temp_dense)
+            temp_dense = Dense(16, activation="relu")(main_layer)
+            main_layer = Dropout(0.05)(temp_dense)
 
             output = Dense(1, activation="linear")(main_layer)
 
-            self.model = Model(input=[input_item_des, input_brand,
-                                      input_category, input_item_con,
-                                      input_shipping],
+            self.model = Model(input=[name, item_desc, brand_name,
+                                      category, category_name,
+                                      item_cond, num_vars],
                                output=[output])
 
-            self.model.compile(optimizer="rmsprop",
-                               loss="mean_squared_error")
+            self.model.compile(optimizer="adam",
+                               loss="mse",
+                               metrics=["mae", rmsle_cust])
             print(self.model.summary())
 
     def train(self):
@@ -203,7 +219,7 @@ class Price_predict():
 
 def get_callbacks(checkpoint_path, patience=2):
     es = EarlyStopping('val_loss', patience=patience, mode="min")
-    msave = ModelCheckpoint(filepath, save_best_only=True)
+    msave = ModelCheckpoint(checkpoint_path, save_best_only=True)
     return [es, msave]
 
 
