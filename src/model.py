@@ -247,6 +247,10 @@ def argparser():
                         default="./data/save_test",
                         nargs="?",
                         help="checkpoint h5 file path")
+    parser.add_argument("-s", "--submission_path",
+                        default="./data/NNsubmission.csv",
+                        nargs="?",
+                        help="csv file path for submission")
     return parser.parse_args()
 
 
