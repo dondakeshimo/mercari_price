@@ -99,8 +99,8 @@ class Predict_price():
 
     def arrange_target(self):
         self.train["target"] = np.log(self.train.price + 1)
-        target_scaler = MinMaxScaler(feature_range=(-1, 1))
-        self.train["target"] = target_scaler.fit_transform(
+        self.target_scaler = MinMaxScaler(feature_range=(-1, 1))
+        self.train["target"] = self.target_scaler.fit_transform(
             self.train.target.values.reshape(-1, 1))
 
     def get_keras_data(self, dataset):
