@@ -196,10 +196,11 @@ class Predict_price():
         self.model.fit(self.X_train,
                        self.dtrain.target.values,
                        epochs=EPOCHS,
+                       verbose=0
                        batch_size=BATCH_SIZE)
 
     def evaluate(self):
-        pred = self.model.predict(self.X_valid)
+        pred = self.model.predict(self.X_valid, verbose=0)
         pred = self.target_scaler.inverse_transform(pred)
         pred = np.exp(pred) - 1
 
@@ -209,7 +210,7 @@ class Predict_price():
         cprint("RMSLE error on dev test: " + str(v_rmsle), "red")
 
     def predict(self, input_data):
-        pred = self.model.predict(input_data, batch_size=BATCH_SIZE)
+        pred = self.model.predict(input_data, verbose=0, batch_size=BATCH_SIZE)
         pred = self.target_scaler.inverse_transform(pred)
         pred = np.exp(pred) - 1
         return pred
