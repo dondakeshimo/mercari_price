@@ -20,6 +20,13 @@ train = pd.read_csv(TRAIN_DATA, sep="\t")
 test = pd.read_csv(TEST_DATA, sep="\t")
 train.head()
 
+sub = train[["price"]]
+sub.head()
+sub.shape
+sub.loc[:, "pred"] = np.ones(sub.shape[0])
+sub["aho"] = np.ones(sub.shape[0])
+sub.head()
+
 train["target"] = np.log1p(train["price"])
 train.head()
 

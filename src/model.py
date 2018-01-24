@@ -222,7 +222,7 @@ class Predict_price():
             f.write(self.model.to_json())
 
     def make_submission(self, submission_path):
-        submission = self.test["test_id"]
+        submission = self.test[["test_id"]]
         submission["price"] = self.predict(self.X_test)
         submission.to_csv(submission_path, index=False)
 
