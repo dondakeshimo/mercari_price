@@ -22,6 +22,9 @@ GRU_OUT = 1
 EPOCHS = 30
 BATCH_SIZE = 32
 TEST_SIZE = 0.33
+MAX_NAME_SEQ = 15
+MAX_ITEM_DESC_SEQ = 65
+MAX_CATEGORY_NAME_SEQ = 20
 # dictionary length is 1144
 # dictionary length is 4979
 
@@ -73,6 +76,16 @@ class Price_predict():
             self.train.name.str.lower())
         self.test["seq_name"] = tok_raw.texts_to_sequences(
             self.test.name.str.lower())
+
+    def search_max_len(self):
+        max_train_name = np.max(self.train.seq_name.apply(lambda x: len(x)))
+        max_test_name = np.max(self.test.seq_name.apply(lambda x: len(x)))
+        self.max_name_seq = np.max([max_train_name, max_test_name])
+        max_train_desc = np.max(
+            self.train.seq_item_description.apply(lambda x: len(x)))
+        max_test_desc = np.max(
+            self.test.seq_item_description.apply(lambda x: len(x)))
+        self.max_item_desc_seq = np.max([max_train_desc, max_test_desc])
 
     def extraction_extra_data(self):
         self.item_con = self.train.item_condition_id.values
