@@ -31,17 +31,14 @@ class Predict_price():
         self.test = pd.read_csv(file_path, sep="\t")
         self.train["target"] = np.log1p(self.train["price"])
 
-    def arrange_description(self):
-        NO_DES = "No description yet"
-        item_des = self.train.item_description
-        item_des = item_des.fillna(NO_DES)
-        item_des = item_des.apply(lambda x: 0 if x == NO_DES else 1)
-        self.item_des = item_des.values
-
     def handle_nan(self):
+        NO_DESC = "No description yet"
         self.train["category_name"].fillna(value="None", inplace=True)
         self.train["brand_name"].fillna(value="None", inplace=True)
         self.train["item_description"].fillna(value="None", inplace=True)
+        self.train["item_description"].replace(to_replace=NO_DESC,
+                                               value="None",
+                                               inplace=True)
 
     def tokenize_category_n_brand(self):
         category = self.train.category_name
