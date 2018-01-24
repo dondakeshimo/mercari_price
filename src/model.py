@@ -12,6 +12,7 @@ from keras.utils import plot_model
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras import backend as K
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
+from sklearn.cross_validation import train_test_split
 
 
 EPOCHS = 2
@@ -122,7 +123,11 @@ class Predict_price():
         return X
 
     def get_keras_data_process(self):
-        self.X_train = self.get_keras_data(self.train)
+        dtrain, dvalid = train_test_split(self.train,
+                                          random_state=123,
+                                          train_size=0.985)
+        self.X_train = self.get_keras_data(dtrain)
+        self.X_valid = self.get_keras_data(dvalid)
         self.X_test = self.get_keras_data(self.test)
 
     def make_model(self, pre_trained_model_path=None):
