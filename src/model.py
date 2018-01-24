@@ -158,6 +158,11 @@ class Predict_price():
             f.write(self.model.to_json())
 
 
+def rmsle(y_true, y_pred):
+    assert len(y_true) == len(y_pred)
+    return (np.square(np.log(y_pred + 1) - np.log(y_true + 1)).mean())**0.5
+
+
 def argparser():
     parser = argparse.ArgumentParser(description='This script is ...')
     parser.add_argument("-m", "--mode",
