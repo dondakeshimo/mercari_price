@@ -2,7 +2,6 @@ import time
 import argparse
 import numpy as np
 import pandas as pd
-from termcolor import cprint
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import model_from_json, Model
@@ -207,7 +206,7 @@ class Predict_price():
         y_true = np.array(self.dvalid.price.values)
         y_pred = pred[:, 0]
         v_rmsle = rmsle(y_true, y_pred)
-        cprint("RMSLE error on dev test: " + str(v_rmsle), "red")
+        print("RMSLE error on dev test: " + str(v_rmsle))
 
     def predict(self, input_data):
         pred = self.model.predict(input_data, verbose=0, batch_size=BATCH_SIZE)
@@ -246,8 +245,7 @@ def rmsle(y_true, y_pred):
 def time_measure(section, start, elapsed):
     lap = time.time() - start - elapsed
     elapsed = time.time() - start
-    cprint("{:22}: {:10.2f}[sec]{:10.2f}[sec]".format(section, lap, elapsed),
-           "blue")
+    print("{:22}: {:10.2f}[sec]{:10.2f}[sec]".format(section, lap, elapsed))
     return elapsed
 
 
