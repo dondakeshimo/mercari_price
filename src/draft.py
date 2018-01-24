@@ -66,6 +66,12 @@ train["seq_name"] = tok_raw.texts_to_sequences(train.name.str.lower())
 test["seq_name"] = tok_raw.texts_to_sequences(test.name.str.lower())
 train.head()
 
+train["target"] = np.log(train.price+1)
+target_scaler = MinMaxScaler(feature_range=(-1, 1))
+train["target"] = target_scaler.fit_transform(train.target.values.reshape(-1,1))
+
+train.head()
+
 
 item_des = train.item_description
 train.loc[:, "item_des"] = item_des.apply(lambda x: 0 if x == NO_DES else 1)

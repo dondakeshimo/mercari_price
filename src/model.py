@@ -110,11 +110,6 @@ class Price_predict():
         self.train["target"] = target_scaler.fit_transform(
             self.train.target.values.reshape(-1, 1))
 
-    def extraction_extra_data(self):
-        self.item_con = self.train.item_condition_id.values
-        self.shipping = self.train.shipping.values
-        self.price = self.train.price.values
-
     def make_separate_data(self):
         sep_data = train_test_split(self.item_des, self.brand,
                                     self.category, self.item_con,
