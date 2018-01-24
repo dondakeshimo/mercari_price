@@ -196,10 +196,10 @@ class Predict_price():
                        verbose=1)
 
     def predict(self, input_data):
-        preds = self.model.predict(input_data, verbose=1)
-        preds = self.target_scaler.inverse_transform(preds)
-        preds = np.exp(preds) - 1
-        return preds
+        pred = self.model.predict(input_data, verbose=1, batch_size=BATCH_SIZE)
+        pred = self.target_scaler.inverse_transform(pred)
+        pred = np.exp(pred) - 1
+        return pred
 
     def save_model(self, checkpoint_path):
         self.model.save_weights(checkpoint_path + ".h5")
