@@ -197,7 +197,6 @@ class Predict_price():
                        self.dtrain.target.values,
                        epochs=EPOCHS,
                        batch_size=BATCH_SIZE,
-                       validation_split=0.1,
                        verbose=1)
 
     def evaluate(self):
@@ -208,7 +207,7 @@ class Predict_price():
         y_true = np.array(self.dvalid.price.values)
         y_pred = pred[:, 0]
         v_rmsle = rmsle(y_true, y_pred)
-        cprint(" RMSLE error on dev test: " + str(v_rmsle), "red")
+        cprint("RMSLE error on dev test: " + str(v_rmsle), "green")
 
     def predict(self, input_data):
         pred = self.model.predict(input_data, verbose=1, batch_size=BATCH_SIZE)
@@ -272,7 +271,7 @@ def argparser():
 def time_measure(section, start, elapsed):
     lap = time.time() - start - elapsed
     elapsed = time.time() - start
-    cprint("{:22}: {:15.2f}[sec]{:15.2f}[sec]".format(section, lap, elapsed),
+    cprint("{:22}: {:10.2f}[sec]{:10.2f}[sec]".format(section, lap, elapsed),
            "blue")
     return elapsed
 
